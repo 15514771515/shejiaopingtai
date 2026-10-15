@@ -1,0 +1,275 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态列表</title>
+    <!-- Bootstrap 5 核心 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 基础图标库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: #e9ebee;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            padding: 16px 0;
+        }
+        /* 动态卡片样式 */
+        .feed-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f0f2f5;
+            margin-bottom: 0.8rem;
+            transition: all 0.1s ease;
+        }
+        .feed-card:last-child {
+            margin-bottom: 0;
+        }
+        /* 用户信息行：头像 + 用户名 + 时间 */
+        .feed-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .feed-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #d4d9e0;
+            flex-shrink: 0;
+        }
+        .feed-username {
+            font-weight: 600;
+            color: #1d2129;
+            font-size: 0.95rem;
+        }
+        .feed-time {
+            color: #8a8f9a;
+            font-size: 0.75rem;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        /* 动态内容 */
+        .feed-content {
+            font-size: 0.95rem;
+            color: #1d2129;
+            padding: 4px 0 8px 0;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+        /* 底部操作栏：评论数 + 互动按钮 */
+        .feed-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #f0f2f5;
+            padding-top: 8px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .feed-comment-count {
+            color: #8a8f9a;
+            font-size: 0.8rem;
+        }
+        .feed-comment-count i {
+            margin-right: 4px;
+        }
+        .feed-action-btns {
+            display: flex;
+            gap: 16px;
+        }
+        .feed-action-btns .action-btn {
+            background: none;
+            border: none;
+            color: #6c7a8d;
+            font-size: 0.8rem;
+            padding: 2px 4px;
+            cursor: pointer;
+            transition: color 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .feed-action-btns .action-btn:hover {
+            color: #4B7BFC;
+        }
+        .feed-action-btns .action-btn i {
+            font-size: 1rem;
+        }
+        /* 返回按钮 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #4b7bfc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.15s;
+            padding: 4px 0;
+            margin-bottom: 12px;
+        }
+        .back-link:hover {
+            color: #2d5fd9;
+            text-decoration: underline;
+        }
+        .back-link i {
+            font-size: 1.1rem;
+        }
+        .page-title {
+            font-weight: 600;
+            color: #1d2129;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .page-title i {
+            color: #4B7BFC;
+            margin-right: 8px;
+        }
+        @media (max-width: 576px) {
+            .feed-card { padding: 0.8rem 1rem; }
+            .feed-avatar { width: 32px; height: 32px; }
+            .feed-username { font-size: 0.85rem; }
+            .feed-time { font-size: 0.7rem; }
+            .feed-content { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9 col-12">
+
+                <!-- 返回上一页 -->
+                <a id="ooi" href="javascript:history.back()" class="back-link">
+                    <i class="bi bi-arrow-left-circle-fill"></i> 返回上一页
+                </a >
+
+                <!-- 页面标题 -->
+                <div class="page-title">
+                    <i class="bi bi-newspaper"></i><sapn id="iioo"></sapn>
+                </div>
+
+                <!-- ====== 动态卡片 1 ====== -->
+                <div id="don">
+
+                </div>
+                </div>
+                <!-- 底部提示 -->
+                <div class="text-center text-secondary small mt-3 opacity-50">
+                    <i class="bi bi-arrow-down me-1"></i> 没有更多了
+                </div>
+
+            </div>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="{% static 'api.js' %}"></script>
+<script>
+    if(localStorage.getItem("token")==null){
+        location.href="/login/"
+    }
+    const pathArr = location.pathname.split('/')
+    const pk = Number(pathArr.pop())
+    ooi=document.getElementById("ooi")
+    ooi.href="/kongjian/"+pk
+    axios.get("/more_2/",{params:{username:pk},headers:{"Authorization":localStorage.getItem("token")}}).then(
+        function(res){
+            d=res.data
+            iioo=document.getElementById("iioo")
+            iioo.innerText=localStorage.getItem("name")+' 的全部动态'+`(${d.length})`
+            console.log(res.data)
+            don=document.getElementById("don")
+            d.reverse()
+            for(i=0;i<d.length;i++){
+                data=d[i]
+                don.innerHTML+=`
+                    <div class="feed-card">
+                    <!-- 用户信息 -->
+                    <div class="feed-user">
+                        <a href="/kongjian/${data.username}"><img src="${data.ava_url}"
+                             alt="${data.name}"
+                             class="feed-avatar"></a>
+                        <span class="feed-username">${data.name}</span>
+                        <span class="feed-time">${data.time}</span>
+                    </div>
+                    <!-- 动态内容 -->
+                    <div class="feed-content">
+                         <div style="font-size:20px" id="text"><strong>${data.text}</strong></div>
+                        <div style="margin-top:12px" id="img${i}">
+
+                        </div>
+                    </div>
+                    <!-- 底部操作栏 -->
+                    <div class="feed-actions">
+                        <span class="feed-comment-count">
+                            <i class="bi bi-chat"></i> 共${data.comments}条评论
+                        </span>
+                        <span style="color:red" id="xin${i}"></span>
+                        <div class="feed-action-btns">
+                            <button name="${data.id}" id="lik${i}" class="action-btn"></button>
+                            <button id="${data.id}" onclick="com(this)" class="action-btn"><i class="bi bi-chat"></i> 评论</button>
+                        </div>
+                    </div>
+                `
+            }
+            for(let n=0;n<d.length;n++){
+                let da=d[n]
+                let imdiv=document.getElementById("img"+n)
+                let xin=document.getElementById("xin"+n)
+                if(localStorage.getItem(`${da.id}`)!="read" && localStorage.getItem(`${da.id}`)!=null && da.username1==da.username){
+                    xin.innerText="有新评论"
+                }
+                let lik=document.getElementById("lik"+n)
+
+                if(da.lik_li.includes(da.li)){
+                    lik.innerText=`❤️ ${da.likes}`
+                    lik.onclick=()=>dislike(lik)
+                }else{
+                    lik.innerHTML=`<i class="bi bi-heart"></i> ${da.likes}`
+                    lik.onclick=()=>like1(lik)
+                }
+                for(o=1;o<=6;o++){
+                    if(da['img'+o+'_url']!=''){
+                        src1=da['img'+o+'_url']
+                        imdiv.innerHTML+=`<a href="${baseURL}/${src1}"><img style="margin-left:2px" src="${baseURL}/${src1}" width="180" height="180" alt=""></a>`
+                    }
+                }
+            }
+        }
+    )
+    function like1(btn){
+        btid=btn.name
+        axios.post("/liked/",{dongtai_id:btid},{headers:{"Authorization":localStorage.getItem("token")}}).then(
+            function(res){
+                btn.innerText="❤️ "+res.data.likes
+                btn.onclick=function(){dislike(btn)}
+            }
+        )
+    }
+    function dislike(btn1){
+        btid=btn1.name
+        axios.post("/disliked/",{dongtai_id:btid},{headers:{"Authorization":localStorage.getItem("token")}}).then(
+            function(res){
+                console.log(btn1.id)
+                btn1.innerHTML="<i class='bi bi-heart'></i> "+res.data.likes
+                btn1.onclick=function(){like1(btn1)}
+            }
+        )
+    }
+    function com(btn){
+        localStorage.setItem("shua","n")
+        localStorage.setItem("dong_id",btn.id)
+        localStorage.setItem("pre",location.href)
+        location.href="/comments/"
+    }
+</script>
+</body>
+</html>

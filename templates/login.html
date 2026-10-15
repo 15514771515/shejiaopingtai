@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{
+            background-color: #f6f8fa;
+        }
+        .login-card{
+            max-width:420px;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center min-vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="login-card card p-5 shadow">
+                <h3 class="text-center mb-4">用户登录</h3>
+                <h5 class="text-center mb-4 text-secondary">账号登录</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">用户名</label>
+                    <input type="text" id="username" class="form-control" placeholder="请输入用户名">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">密码</label>
+                    <input type="password" id="password" class="form-control" placeholder="请输入密码">
+                </div>
+                <span id="warn" style="color:red"></span>
+
+                <button id="loginBtn" class="btn btn-primary w-100" onclick="log()">登录</button>
+
+                <a class="icon-link icon-link-hover link-warning link-underline-success link-underline-opacity-25"
+                   href="/register/">
+                    没有账号? 前往注册
+                    <svg xmlns="http://www.w3.org/2000/svg" class="bi" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="{% static 'api.js' %}"></script>
+    <script>
+        function log(){
+            username=document.getElementById("username").value
+            password=document.getElementById("password").value
+            data={
+                username:username,
+                password:password
+            }
+            axios.post("/log/",data).then(
+                function(res){
+                    if(res.data.code!=200){
+                        alert("服务器异常")
+                    }else{
+                        localStorage.setItem("refresh_token",res.data.refresh_token)
+                        localStorage.setItem("token",res.data.access_token)
+                        location.href="/"
+                    }
+                }
+            ).catch(
+                function(err){
+                    if(err.response){
+                        msg=err.response.data.msg
+                        alert(msg)
+                    }
+                }
+            )
+        }
+
+    </script>
+</body>
+</html>

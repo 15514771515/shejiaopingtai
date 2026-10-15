@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心</title>
+    <!-- Bootstrap5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fff8e0;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+        .card {
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: none;
+        }
+        .item-row {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 18px;
+        }
+        .item-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container-lg">
+    <div class="card p-5">
+        <!-- 返回首页 -->
+        <a href="/" class="text-primary text-decoration-none d-inline-flex align-items-center gap-2 mb-3 fs-5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            返回首页
+        </a>
+
+        <!-- 页面标题 -->
+        <h1 class="fs-1 fw-medium text-dark mb-4">个人中心</h1>
+
+        <!-- 信息操作容器 -->
+        <div class="border rounded-1 overflow-hidden">
+            <div id="nicheng" class="item-row">昵称：...</div>
+            <div id="username" class="item-row">账号：...</div>
+            <div class="item-row">
+                <a href="/email/" class="text-primary fs-5">修改密码</a>
+            </div>
+            <div class="item-row">
+                <a href="/nicheng/" class="text-primary fs-5">修改昵称</a>
+            </div>
+            <div class="item-row">
+                <label for="avatar_file" class="btn btn-warning">
+                    上传头像
+                    <input id="avatar_file" type="file" class="d-none" accept="image/*">
+                </label>
+            </div>
+            <div class="modal fade" id="confirmModal">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body py-4 text-center">
+                            <p id="ppii" class="mb-0 fs-5">确定要退出登录吗？</p>
+                        </div>
+                        <div class="modal-footer justify-content-center border-top-0 gap-2">
+                            <button id="no" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button id="ok" class="btn btn-danger" onclick="handleOk()">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="mymodal">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <input type="password" id="txt" class="form-control" placeholder="请输入你的密码">
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button class="btn btn-danger" onclick="okClick()">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item-row">
+                <button onclick="openModal()" class="btn btn-warning fs-6 px-4 py-2">退出登录</button>
+            </div>
+            <div class="item-row">
+                <button onclick="ppii()" class="btn btn-danger fs-6 px-4 py-2">注销账号</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="{% static 'api.js' %}"></script>
+<script>
+    if(localStorage.getItem("token")==null){
+        location.href="/login/"
+    }
+    function getRandName(){
+        const t = Date.now() + Math.random().toString(36).slice(2,10)
+        return t + ".jpg"
+    }
+    async function compressImg(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = e => {
+            const imgObj = new Image()
+            imgObj.src = e.target.result
+            imgObj.onload = () => {
+                const max = 1200
+                let w = imgObj.width, h = imgObj.height
+                if(w>max||h>max){
+                    if(w>h){ h = h*max/w; w=max }
+                    else{ w = w*max/h; h=max }
+                }
+                const canvas = document.createElement('canvas')
+                canvas.width = w
+                canvas.height = h
+                canvas.getContext('2d').drawImage(imgObj,0,0,w,h)
+                canvas.toBlob(b=>resolve(b), 'image/jpeg', 0.7)
+            }
+        }
+    })
+    }
+
+    axios.post("/get_center/",{token:localStorage.getItem("token")}).then(
+        function func(res){
+            let nicheng=res.data.nicheng
+            let ni=document.getElementById("nicheng")
+            let us=document.getElementById("username")
+            us.innerText="账号: "+res.data.username
+            us.name=res.data.avatar_url
+            ni.innerText="昵称: "+nicheng
+        }
+    )
+    ii=document.getElementById("avatar_file")
+    ii.onchange=async function(e){
+        let img1=await compressImg(e.target.files[0])
+        let fd=new FormData()
+        let uu=document.getElementById("username")
+        sr=uu.name
+        fd.append("img",img1,getRandName())
+        fd.append("token",localStorage.getItem("token"))
+        console.log(sr)
+        fd.append("url",sr)
+        axios.post("/upload_avatar/",fd).then(
+            function(res){
+                alert("上传成功")
+                location.href="/center/"
+            }
+        ).catch(
+            function func(err){
+                if(err.response.data.code==403){
+                    location.href="/login/"
+                    alert("请先登录")
+                }else if(err.response.data.code==402){
+                    alert("修改失败,改啥呢乐乐🤣🤣")
+                }
+            }
+        )
+    }
+
+    let myModal;
+    let md;
+    document.addEventListener('DOMContentLoaded',()=>{
+        md = new bootstrap.Modal(document.querySelector('#mymodal'))
+    })
+    document.addEventListener('DOMContentLoaded', function(){
+    const dom = document.querySelector('#confirmModal')
+    myModal = new bootstrap.Modal(dom)
+    })
+    function openModal(){
+        myModal.show()
+    }
+    function handleOk(){
+        localStorage.clear()
+        location.href = "/login/"
+        myModal.hide()
+    }
+    function ppii(){
+        let ppii=document.getElementById("ppii")
+        let ok=document.getElementById("ok")
+        let no=document.getElementById("no")
+        ok.innerText="真的,我想好了!"
+        ok.onclick=handleO
+        no.innerText="算了,我在想想"
+        ppii.innerText="你真的要注销账号吗?"
+        myModal.show()
+    }
+    function handleO(){
+        myModal.hide()
+        md.show()
+    }
+    function okClick(){
+        let val = document.getElementById('txt').value
+        axios.post("/delete_acount/",{token:localStorage.getItem("token"),password:val}).then(
+            function func(res){
+                md.hide()
+                localStorage.clear()
+                location.href="/login/"
+            }
+        ).catch(
+            function fun(err){
+                if(err.response.data.code==400){
+                    md.hide()
+                    alert("密码错误,注销失败")
+                }else{
+                    md.hide()
+                    alert("你需要重新登录")
+                }
+            }
+        )
+        md.hide()
+    }
+</script>
+</body>
+</html>

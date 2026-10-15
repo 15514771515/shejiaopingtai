@@ -1,0 +1,41 @@
+from django.db import models
+class Users(models.Model):
+    username = models.CharField(max_length = 12)
+    name = models.CharField(max_length=20)
+    fans = models.IntegerField()
+    guanzhu = models.IntegerField()
+    fangke = models.IntegerField(default=0)
+    avatar = models.ImageField(upload_to = 'avatar/')
+    dongtai = models.IntegerField(default=0)
+class Files(models.Model):
+    username=models.CharField(max_length=12)
+    gender=models.CharField(max_length=1,default='',null=True,blank=True)
+    age=models.CharField(max_length=3,default='',null=True,blank=True)
+    birth=models.CharField(max_length=20,default='',null=True,blank=True)
+    ip=models.CharField(max_length=100,default='未知',null=True,blank=True)
+    job=models.CharField(max_length=20,default='',null=True,blank=True)
+class Fans(models.Model):
+    username = models.CharField(max_length = 12)
+    fans_username=models.CharField(max_length=12)
+class Dongtai(models.Model):
+    username=models.CharField(default=0,max_length=12)
+    ava_url=models.CharField(null=True,blank=True,max_length=200,default='')
+    img1_url = models.CharField(null=True,blank=True,max_length=200)
+    img2_url = models.CharField(null=True,blank=True,max_length=200)
+    img3_url = models.CharField(null=True,blank=True,max_length=200)
+    img4_url = models.CharField(null=True,blank=True,max_length=200)
+    img5_url = models.CharField(null=True,blank=True,max_length=200)
+    img6_url = models.CharField(null=True,blank=True,max_length=200)
+    time=models.CharField(default=0,max_length=20)
+    name = models.CharField(max_length=20,default='')
+    text = models.TextField(default='')
+    likes = models.IntegerField(default=0)
+    comments = models.IntegerField(default=0)
+class Users_Who_Likes(models.Model):
+    dong_id=models.IntegerField()
+    username = models.CharField(max_length=12)
+class Comments1(models.Model):
+    comment=models.TextField(default='')
+    user=models.ForeignKey(Users,on_delete=models.SET_NULL,null=True)
+    dong=models.ForeignKey(Dongtai,on_delete=models.CASCADE)
+    time=models.CharField(max_length=20,default='')

@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修改昵称</title>
+    <!-- Bootstrap5 国内CDN -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-center">
+                    <h4>修改昵称</h4>
+                </div>
+                <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">新昵称（8位字符以下）</label>
+                            <input id="nicheng" type="text" name="nickname" class="form-control" placeholder="请输入新昵称" required>
+                        </div>
+                        <div class="d-grid gap‑2">
+                            <button onclick="func()" class="btn btn‑primary">保存修改</button>
+                            <a href="javascript:history.back()" class="btn btn‑outline‑secondary">返回</a>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="{% static 'api.js' %}"></script>
+<script>
+    if(localStorage.getItem("token")==null){
+        location.href="/login/"
+    }
+    function func(){
+        let nicheng=document.getElementById("nicheng").value
+        axios.post("/nicheng_modify/",{token:localStorage.getItem("token"),nicheng:nicheng}).then(
+            function func(res){
+                alert("修改成功")
+            }
+        ).catch(
+            function fun(err){
+                if(err.response.data.code==403){
+                    alert("请先登录")
+                    location.href="/login/"
+                }else if(err.response.status==400){
+                    alert("修改失败,昵称太长")
+                }else if(err.response.status==402){
+                    alert("改啥呢东子我让你改了吗?🤣🤣🤣")
+                }
+            }
+        )
+    }
+</script>
+</body>
+</html>
